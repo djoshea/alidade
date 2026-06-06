@@ -1,0 +1,29 @@
+# ── Rust (Cargo) — commit Cargo.lock; this repo ships binaries ──
+target/
+
+# ── Python (uv) — commit uv.lock ──
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.ruff_cache/
+.pytest_cache/
+
+# ── Frontend (Vite / Node) — commit your lockfile ──
+node_modules/
+.vite/
+
+# ── Local / secrets ──
+.env
+.env.*
+!.env.example
+
+# ── OS / editor ──
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+# .vscode/   ← uncomment if you don't want to share editor settings
+
