@@ -1,0 +1,77 @@
+# Tag-driven release pipeline. STUB for Phase 0: the jobs are wired up but
+# guarded by `if: false` so that pushing a `v*` tag will not actually attempt
+# to publish anything until we flip the guards and add the secrets.
+#
+# Release order, once enabled:
+#   1. crates.io: alidade-protocol → alidade-core → alidade  (dep order matters)
+#   2. PyPI:      uv build && uv publish        (single package)
+#   3. npm:       @alidade/protocol             (alidade name-claim is one-off)
+#
+# Versioning is lockstep (docs/PLAN.md §5): one tag triggers one synchronized
+# release of every artifact at the same version.
+
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish-crates:
+    name: publish crates.io
+    if: false # phase 0 stub — flip to true (or remove) once CARGO_REGISTRY_TOKEN is set
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+      - name: publish alidade-protocol
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish -p alidade-protocol
+      - name: publish alidade-core
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish -p alidade-core
+      - name: publish alidade
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish -p alidade
+
+  publish-pypi:
+    name: publish PyPI
+    if: false # phase 0 stub
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: uv build
+        run: uv build
+      - name: uv publish
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: uv publish
+
+  publish-npm:
+    name: publish npm
+    if: false # phase 0 stub
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - name: publish @alidade/protocol
+        working-directory: packages/protocol
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm publish --access public --no-git-checks

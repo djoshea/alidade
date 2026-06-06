@@ -1,0 +1,47 @@
+name: python
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "python/**"
+      - ".github/workflows/python.yml"
+  pull_request:
+    paths:
+      - "python/**"
+      - ".github/workflows/python.yml"
+
+concurrency:
+  group: python-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: python
+
+jobs:
+  check:
+    name: ruff, ty, pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: uv sync
+        run: uv sync --frozen
+
+      - name: ruff check
+        run: uv run ruff check
+
+      - name: ruff format --check
+        run: uv run ruff format --check
+
+      - name: ty check
+        run: uv run ty check
+
+      - name: pytest
+        run: uv run pytest
