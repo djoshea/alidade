@@ -1,0 +1,9 @@
+# pnpm workspace declaration.
+#
+# Any package whose package.json sits under one of these globs is a workspace
+# member. `workspace:*` dependencies across members resolve to local symlinks
+# (no registry fetch); on publish, pnpm rewrites them to real version ranges.
+packages:
+  - "app"
+  - "packages/*"
+  - "npm/*"

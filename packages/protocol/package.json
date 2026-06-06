@@ -1,0 +1,37 @@
+{
+  "name": "@alidade/protocol",
+  "version": "0.0.0",
+  "description": "TypeScript wire-protocol types for alidade. Generated from the alidade-protocol Rust crate.",
+  "license": "SEE LICENSE IN ../../LICENSE.md",
+  "author": "Daniel J. O'Shea",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/djoshea/alidade.git",
+    "directory": "packages/protocol"
+  },
+  "homepage": "https://github.com/djoshea/alidade",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "tsc"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

@@ -4,6 +4,10 @@
 # ── Rust (Cargo) — workspace-rooted; Cargo.lock is tracked. ──
 target/
 
+# ── Node (pnpm workspace) — node_modules can appear at the root and in any
+#    workspace package; pnpm-lock.yaml is tracked at the root. ──
+node_modules/
+
 # ── Local / secrets ──
 .env
 .env.*
