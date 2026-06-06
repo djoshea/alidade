@@ -1,19 +1,8 @@
-# ── Rust (Cargo) — commit Cargo.lock; this repo ships binaries ──
+# Repo-wide ignores only. Component-specific ignores live in
+# app/.gitignore and python/.gitignore.
+
+# ── Rust (Cargo) — workspace-rooted; Cargo.lock is tracked. ──
 target/
-
-# ── Python (uv) — commit uv.lock ──
-.venv/
-__pycache__/
-*.py[cod]
-*.egg-info/
-dist/
-build/
-.ruff_cache/
-.pytest_cache/
-
-# ── Frontend (Vite / Node) — commit your lockfile ──
-node_modules/
-.vite/
 
 # ── Local / secrets ──
 .env
@@ -26,4 +15,3 @@ Thumbs.db
 *.swp
 .idea/
 # .vscode/   ← uncomment if you don't want to share editor settings
-

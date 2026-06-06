@@ -1,0 +1,5 @@
+# Frontend (Vite / Node). pnpm-lock.yaml is tracked at the repo root.
+node_modules/
+dist/
+.vite/
+*.log

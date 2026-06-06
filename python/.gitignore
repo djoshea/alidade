@@ -1,0 +1,9 @@
+# Python (uv). uv.lock is tracked.
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.ruff_cache/
+.pytest_cache/
