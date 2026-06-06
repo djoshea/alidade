@@ -17,4 +17,4 @@ license = "PolyForm-Noncommercial-1.0.0"
 authors = ["Daniel J. O'Shea"]
 repository = "https://github.com/djoshea/alidade"
 homepage = "https://github.com/djoshea/alidade"
-readme = "../../README.md"
+readme = "README.md"
