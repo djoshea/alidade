@@ -64,12 +64,16 @@ docs/PLAN.md                full architecture & roadmap
 - Format: `uv run ruff format`
 - Types: `uv run ty check`
 
-**Frontend** (`app/`):
-- Install: `npm install`
-- Dev server: `npm run dev`
-- Build: `npm run build`
-- Typecheck: `npm run typecheck`  (tsc `--noEmit`, strict)
-- Tauri (once set up): `npm run tauri dev` / `npm run tauri build`
+**Frontend** (pnpm workspace at the repo root; `app/`, `packages/*`, `npm/*`):
+- Install: `pnpm install` (run at the repo root, not inside `app/`)
+- Dev server: `pnpm --filter @alidade/app run dev`
+- Build: `pnpm --filter @alidade/app run build`  (runs `tsc -b && vite build`)
+- Typecheck (all packages): `pnpm -r run typecheck`
+- Build the protocol package only: `pnpm --filter @alidade/protocol run build`
+- Tauri (once set up): `pnpm --filter @alidade/app run tauri dev` / `... run tauri build`
+
+`workspace:*` deps (e.g. `app/` → `@alidade/protocol`) resolve to local symlinks; no
+registry round-trip during development.
 
 **Protocol bindings:** regenerate TS/Python types from `alidade-protocol`, then verify no drift
 (the CI drift check fails if committed generated files differ). Never hand-edit generated bindings.
