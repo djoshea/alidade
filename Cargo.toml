@@ -1,0 +1,20 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/alidade-protocol",
+    "crates/alidade-core",
+    "crates/alidade",
+]
+
+# Shared metadata. Each crate opts in to a field via `<field>.workspace = true`.
+# Lockstep versioning (see docs/PLAN.md §5) lives in the `version` field here:
+# bump it once, every crate moves together.
+[workspace.package]
+version = "0.0.0"
+edition = "2021"
+rust-version = "1.75"
+license = "PolyForm-Noncommercial-1.0.0"
+authors = ["Daniel J. O'Shea"]
+repository = "https://github.com/djoshea/alidade"
+homepage = "https://github.com/djoshea/alidade"
+readme = "../../README.md"

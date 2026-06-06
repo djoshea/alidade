@@ -1,0 +1,20 @@
+[package]
+name = "alidade"
+description = "Headless server for alidade — a 3D viewer/controller for CAD-and-volumetric scenes. Source-available, free for noncommercial use."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+
+# The crate is both a library (the server's testable core) and a binary (the
+# `alidade` executable). When the crate name is `alidade`, Cargo automatically
+# uses `src/main.rs` as a binary named `alidade` — no [[bin]] override needed.
+[lib]
+
+[dependencies]
+alidade-core = { path = "../alidade-core", version = "0.0.0" }
+alidade-protocol = { path = "../alidade-protocol", version = "0.0.0" }

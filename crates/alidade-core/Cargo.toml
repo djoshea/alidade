@@ -1,0 +1,16 @@
+[package]
+name = "alidade-core"
+description = "Scene tree, document model, and geometry-agnostic logic for alidade."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+
+[lib]
+
+[dependencies]
+alidade-protocol = { path = "../alidade-protocol", version = "0.0.0" }
