@@ -152,3 +152,111 @@ Why two `tsconfig` files: `vite.config.ts` runs in Node (during build), but
 `src/*.tsx` runs in the browser. They need different `lib`, `module`, and
 `types` settings. The root `tsconfig.json` references both via TS project
 references — `tsc --noEmit` then checks both worlds with their own rules.
+
+## Implementation notes from Phase 0 scaffolding
+
+The kinds of small decisions and gotchas that come up the first time you
+wire this stack together.
+
+### The React entry point (`main.tsx`)
+
+```tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { App } from "./App";
+
+const rootElement = document.getElementById("root");
+if (rootElement === null) {
+  throw new Error("missing #root element in index.html");
+}
+
+createRoot(rootElement).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);
+```
+
+- **`createRoot` (React 18+).** The post-React-17 mount API. You point it at
+  a DOM node (`<div id="root">` in our `index.html`) and call `.render(...)`
+  with your top-level JSX. React then owns that subtree.
+- **Why the `=== null` guard.** With `strict: true` in our tsconfig,
+  `getElementById` returns `HTMLElement | null` — TypeScript forces us to
+  handle the missing-element case. The error here would only fire if
+  someone deleted `<div id="root">` from `index.html`, so a thrown error
+  is appropriate.
+- **`<StrictMode>` is dev-only paranoia.** In dev, it intentionally
+  **double-invokes** component renders, effects, and state updaters to
+  surface impure code (anything that depends on render order or has
+  side effects in the render body). It does nothing in production builds.
+  Leave it on always; you want those bugs found locally, not in
+  prod.
+
+### Component return type: `React.JSX.Element`
+
+```tsx
+export function App(): React.JSX.Element { ... }
+```
+
+The explicit return type isn't required — TypeScript would infer it — but
+annotating it gives one extra check: if you ever return `void` or `null`
+by mistake from a component, the annotation catches it at the call site
+rather than two screens away. Convention varies; the project codebase
+should pick one and stick with it.
+
+### Why drop the `.tsx` from imports
+
+We initially wrote `import { App } from "./App.tsx"`. TypeScript's default
+behavior disallows `.ts`/`.tsx` extensions in import paths (TS5097) unless
+`allowImportingTsExtensions: true` is set — and *that* flag requires
+`noEmit: true` and conflicts with `composite: true` (project references
+require emit semantics). Easiest path: drop the extension. `import "./App"`
+is the conventional style anyway; the bundler and the type-checker both
+resolve it to `App.tsx`.
+
+### `vite-env.d.ts`
+
+```ts
+/// <reference types="vite/client" />
+```
+
+A **triple-slash directive** — a TypeScript-specific compiler instruction
+(predates ES modules). This one pulls in Vite's ambient types so things
+like `import.meta.env.MODE` (Vite injects this at build) have proper
+typing in your source. Without it, `import.meta.env` would be typed as
+`any` or unknown. One line per `app/`, then forget it exists.
+
+### pnpm 11's `allowBuilds` safety feature
+
+pnpm 11 introduced a default-deny policy on dependency install scripts.
+A package's `postinstall` won't run unless its name is in
+`pnpm-workspace.yaml`'s `allowBuilds:` map (or `onlyBuiltDependencies` in
+package.json on older pnpm). This blocks supply-chain attacks where a
+malicious transitive dep runs arbitrary code on `npm install`.
+
+Tradeoff: some legitimate packages need their postinstall to function.
+**esbuild** is one — its postinstall downloads the right native binary
+for your platform. Vite depends on esbuild, so the app won't work without
+it. We allow it explicitly:
+
+```yaml
+allowBuilds:
+  esbuild: true
+```
+
+Audit any new `allowBuilds` entry the way you'd audit a new dependency:
+what does this package's install script actually do, and do you trust it?
+
+### `pnpm --filter`, briefly
+
+You'll see this all over the place:
+
+- `pnpm --filter @alidade/app run typecheck` — run `typecheck` in the
+  `@alidade/app` package only.
+- `pnpm -r run build` — run `build` in every workspace member that has it.
+- `pnpm -F './packages/*' run build` — run `build` in every package under
+  `packages/`.
+
+The filter syntax (`--filter`, `-F`) is how you target subsets of the
+workspace. It's the JS equivalent of `cargo build -p alidade-core`.
+
