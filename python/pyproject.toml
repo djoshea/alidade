@@ -1,0 +1,49 @@
+[project]
+name = "alidade"
+version = "0.0.0"
+description = "Python client and build123d integration for alidade — a 3D viewer/controller for CAD and volumetric scenes."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "PolyForm-Noncommercial-1.0.0"
+license-files = ["../LICENSE.md"]
+authors = [{ name = "Daniel J. O'Shea" }]
+keywords = ["3d", "cad", "viewer", "build123d", "visualization"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Graphics :: 3D Rendering",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+
+[project.urls]
+Homepage = "https://github.com/djoshea/alidade"
+Repository = "https://github.com/djoshea/alidade"
+Documentation = "https://github.com/djoshea/alidade/blob/main/docs/PLAN.md"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/alidade"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+    "ty>=0.0.1a1",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
