@@ -11,8 +11,8 @@ members = [
 # bump it once, every crate moves together.
 [workspace.package]
 version = "0.0.0"
-edition = "2021"
-rust-version = "1.75"
+edition = "2024"
+rust-version = "1.85"
 license = "PolyForm-Noncommercial-1.0.0"
 authors = ["Daniel J. O'Shea"]
 repository = "https://github.com/djoshea/alidade"
