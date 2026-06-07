@@ -37,7 +37,7 @@ Rust and frontend work:
 ```
 crates/alidade-protocol/   wire types (serde); source of truth for the cross-language contract
 crates/alidade-core/        scene tree, document model, geometry-agnostic logic
-crates/alidade-server/      the server: lib + binary `alidade`
+crates/alidade/             the server: lib + binary `alidade` (bare crate name = bare binary name)
 app/                        TypeScript + React + R3F + leva frontend (Vite)
 app/src-tauri/              Tauri desktop shell (thin Rust); its OWN Cargo project, NOT in the workspace
 python/                     `alidade` PyPI package: ws client + build123d integration
@@ -52,7 +52,7 @@ docs/PLAN.md                full architecture & roadmap
 
 **Rust** (workspace root):
 - Build: `cargo build`
-- Run server: `cargo run -p alidade-server`
+- Run server: `cargo run -p alidade`
 - Test: `cargo test`
 - Lint: `cargo clippy --all-targets --all-features -- -D warnings`
 - Format: `cargo fmt`
@@ -77,6 +77,13 @@ registry round-trip during development.
 
 **Protocol bindings:** regenerate TS/Python types from `alidade-protocol`, then verify no drift
 (the CI drift check fails if committed generated files differ). Never hand-edit generated bindings.
+
+**Pre-commit hooks** (`.pre-commit-config.yaml`):
+- Install once after cloning: `uv tool install pre-commit && pre-commit install`
+- After install, every `git commit` runs ruff (autofix + format on Python files),
+  `cargo fmt --check` on Rust files, and file-hygiene checks.
+- Manual run on the whole tree: `pre-commit run --all-files`
+- Update hook revisions: `pre-commit autoupdate`
 
 ---
 

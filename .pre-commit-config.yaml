@@ -1,0 +1,58 @@
+# Local pre-commit hooks for alidade.
+#
+# Devs install once after cloning:
+#
+#     uv tool install pre-commit
+#     pre-commit install
+#
+# After that, every `git commit` runs the hooks below on staged files.
+# Hooks that modify files (ruff, formatters) cause the commit to fail
+# when changes are written — re-stage and commit again to accept them.
+#
+# CI runs the same checks (`ruff check`, `ruff format --check`,
+# `cargo fmt --check`) on every push, so skipping the local hook is not
+# a way to land unformatted code — only a way to push and watch CI fail.
+#
+# Heavy checks (clippy, cargo test, pnpm typecheck/build, twine check)
+# are deliberately *not* in pre-commit — they live in CI where their
+# wall-clock can hide behind other work. Pre-commit is for fast feedback
+# only.
+
+repos:
+  # Python: lint (with autofix) and format on commit.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.16
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # Common file-hygiene hooks: trailing whitespace, missing final
+  # newline, syntactic check of YAML / TOML / JSON, merge-conflict
+  # markers left in source.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        # Don't trim trailing whitespace inside Markdown — two trailing
+        # spaces are a hard line break in CommonMark.
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500]
+
+  # Rust: format check via the local toolchain. We don't use a
+  # third-party pre-commit-rust repo because `cargo fmt --check` is a
+  # one-line system invocation and avoids pinning yet another rev.
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt --check
+        entry: cargo fmt --all -- --check
+        language: system
+        types: [rust]
+        pass_filenames: false
