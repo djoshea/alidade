@@ -1,6 +1,6 @@
 {
   "name": "alidade",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "JavaScript/TypeScript client for alidade — a 3D viewer and controller for CAD-and-volumetric scenes. Drives the alidade server over websocket; the JS analogue of the Python `alidade` package.",
   "license": "SEE LICENSE IN ../../LICENSE.md",
   "author": "Daniel J. O'Shea",

@@ -1,6 +1,6 @@
 {
   "name": "@alidade-app/app",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Browser frontend for alidade — Vite + React + R3F.",
   "license": "SEE LICENSE IN ../LICENSE.md",
   "author": "Daniel J. O'Shea",

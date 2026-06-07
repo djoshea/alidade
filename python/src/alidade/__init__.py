@@ -3,6 +3,6 @@
 Phase 0: placeholder. Real client functionality arrives in Phase 5.
 """
 
-__version__: str = "0.0.0"
+__version__: str = "0.0.1"
 
 __all__ = ["__version__"]

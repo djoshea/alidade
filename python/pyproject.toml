@@ -1,6 +1,6 @@
 [project]
 name = "alidade"
-version = "0.0.0"
+version = "0.0.1"
 description = "Python client and build123d integration for alidade — a 3D viewer/controller for CAD and volumetric scenes."
 readme = "README.md"
 requires-python = ">=3.10"

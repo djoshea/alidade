@@ -10,7 +10,7 @@ members = [
 # Lockstep versioning (see docs/PLAN.md §5) lives in the `version` field here:
 # bump it once, every crate moves together.
 [workspace.package]
-version = "0.0.0"
+version = "0.0.1"
 edition = "2024"
 rust-version = "1.85"
 license = "PolyForm-Noncommercial-1.0.0"
