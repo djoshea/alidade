@@ -11,12 +11,12 @@
 #   crates.io: crates.io → each crate's Settings → Trusted Publishers.
 #              Add one entry per crate (alidade-protocol, alidade-core,
 #              alidade) pointing at djoshea/alidade, workflow `release.yml`,
-#              environment `release`.
+#              environment `crates-io`.
 #
 #   npm:      npmjs.com → each package's Settings → Trusted Publisher.
 #              Add one entry per package (alidade, @alidade-app/protocol)
 #              pointing at djoshea/alidade, workflow `release.yml`,
-#              environment `release`.
+#              environment `npm`.
 #
 # Pre-release tags (anything containing `-`, e.g. `v0.0.1-rc.1`) are
 # ignored on purpose — TestPyPI is handled by its own workflow_dispatch
@@ -40,7 +40,7 @@ jobs:
     if: ${{ !contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest
     environment:
-      name: release
+      name: crates-io
       url: https://crates.io/crates/alidade
     permissions:
       contents: read
@@ -107,7 +107,8 @@ jobs:
     if: ${{ !contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest
     environment:
-      name: release
+      name: npm
+      url: https://www.npmjs.com/package/@alidade-app/protocol
     permissions:
       contents: read
       id-token: write  # required for npm provenance + trusted publishing
