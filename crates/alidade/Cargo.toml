@@ -16,5 +16,5 @@ readme.workspace = true
 [lib]
 
 [dependencies]
-alidade-core = { path = "../alidade-core", version = "0.0.1" }
-alidade-protocol = { path = "../alidade-protocol", version = "0.0.1" }
+alidade-core = { path = "../alidade-core", version = "0.0.1" } # x-release-please-version
+alidade-protocol = { path = "../alidade-protocol", version = "0.0.1" } # x-release-please-version

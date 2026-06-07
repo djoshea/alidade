@@ -1,0 +1,87 @@
+# Release-please: open and maintain a "release PR" whenever new
+# conventional-commit changes land on main since the last release tag.
+# Merging the release PR fires the version tag (e.g. `v0.0.2`), which in
+# turn triggers .github/workflows/release.yml — the actual publishes.
+#
+# Lockfile refresh (Cargo.lock, pnpm-lock.yaml, python/uv.lock) is
+# handled by the sibling workflow release-please-lockfiles.yml, which
+# fires on the PR opened here.
+#
+# Conventional-commit semantics drive the bump computed in the release PR:
+#   fix:                      → patch  (e.g. 0.0.1 → 0.0.2)
+#   feat:                     → minor  (e.g. 0.0.1 → 0.1.0)
+#   feat!: / BREAKING CHANGE: → major
+#   chore / docs / refactor / test / ci → no bump; not in changelog
+#
+# Config file `release-please-config.json` — field-by-field notes:
+#
+#   "include-component-in-tag": false
+#       Single-package repo from release-please's POV; the tag is plain
+#       `vX.Y.Z`, not `alidade-vX.Y.Z`. Matches our existing `v0.0.1`.
+#
+#   "include-v-in-tag": true
+#       Tag is `v0.0.1` not `0.0.1`. Matches the convention release.yml
+#       triggers on (`tags: ['v*']`).
+#
+#   "separate-pull-requests": false
+#       Single release PR for the whole repo (vs one PR per package). We
+#       only have one logical package anyway, but this is the safe knob.
+#
+#   "packages.\".\".release-type": "simple"
+#       The "simple" release type does NOT auto-edit any package
+#       manifest by itself — every file we want updated is listed in
+#       extra-files. We use "simple" instead of "rust"/"node"/"python"
+#       because release-please's typed updaters target each crate's own
+#       [package].version line, and our root Cargo.toml uses
+#       [workspace.package].version (with the rest inheriting). "simple"
+#       + per-file extra-files lets us cleanly handle the lockstep shape.
+#
+#   "packages.\".\".bump-minor-pre-major": true
+#       While still pre-1.0, treat "feat:" as a minor bump (0.0.x → 0.1.0)
+#       instead of a major bump (0.0.x → 1.0.0). The default behavior
+#       would be to never bump past 0.x.y unless a BREAKING CHANGE is
+#       present, which is too conservative for early development.
+#
+#   "packages.\".\".bump-patch-for-minor-pre-major": false
+#       Companion to the above: "fix:" still produces patch bumps
+#       (0.0.1 → 0.0.2), not pre-1.0 minor bumps. Standard behavior.
+#
+#   "extra-files": [...]
+#       Each entry says "release-please, after computing the new version,
+#       go rewrite the version string in this file".
+#         type: "generic"  → finds lines annotated with the comment
+#           `# x-release-please-version` and updates the SemVer literal
+#           found on that line. Used for TOML files and Python source.
+#         type: "json"     → applies the new version at the given
+#           jsonpath. Used for our four package.json files (JSON doesn't
+#           accept comments, so the annotation approach can't apply).
+
+name: release-please
+
+on:
+  # Runs on every push to main. release-please decides for itself
+  # whether to open/update a release PR — most pushes (chores, docs,
+  # etc.) result in a no-op.
+  push:
+    branches: [main]
+
+# release-please needs both:
+#   contents: write — to push the release PR branch and (on merge) the tag
+#   pull-requests: write — to open and update the release PR
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          # Both files live at the repo root by convention.
+          config-file: release-please-config.json
+          # Tracks the currently-released version for each package; the
+          # manifest is how release-please bootstraps without scanning
+          # all of history. We seeded it to 0.0.1 (the version live on
+          # registries).
+          manifest-file: .release-please-manifest.json
