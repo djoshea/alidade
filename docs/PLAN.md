@@ -164,10 +164,13 @@ alidade/
   `alidade-kernel` reserved for the future kernel crate.
 - **PyPI:** `alidade` (Python client) published at `0.0.0`.
 - **npm:** the `alidade` org name was already taken by an unrelated party, so the project uses
-  the `alidade-app` org instead — `@alidade-app/protocol` (TS protocol types) is the canonical
-  JS-side package. The bare `alidade` name on npm is deliberately *not* claimed: there is no
-  JS client library in the planned scope, so the bare name has no functional role; if a JS
-  client is built later, the name can be claimed at that point.
+  the `alidade-app` org for scoped packages. Three names claimed on npm:
+  - `@alidade-app/protocol` — TS protocol types, generated from the `alidade-protocol` Rust crate.
+  - `@alidade-app/app` — private workspace name for the web frontend (not published).
+  - `alidade` — reserved for the future JavaScript/TypeScript client library, the JS analogue
+    of the Python `alidade` client. Published as a `0.0.0` stub with a forward-looking
+    description; the real client API arrives post-Phase-0 if and when JS programmatic use
+    cases (Node, Deno, Bun, custom embeddings) emerge.
 
 The bare `alidade` does double duty as the server binary (`cargo install alidade`) and the
 Python package (`pip install alidade` / `import alidade`).

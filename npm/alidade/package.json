@@ -1,0 +1,17 @@
+{
+  "name": "alidade",
+  "version": "0.0.0",
+  "description": "JavaScript/TypeScript client for alidade — a 3D viewer and controller for CAD-and-volumetric scenes. Drives the alidade server over websocket; the JS analogue of the Python `alidade` package.",
+  "license": "SEE LICENSE IN ../../LICENSE.md",
+  "author": "Daniel J. O'Shea",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/djoshea/alidade.git",
+    "directory": "npm/alidade"
+  },
+  "homepage": "https://github.com/djoshea/alidade",
+  "keywords": ["3d", "cad", "viewer", "visualization", "websocket", "client", "build123d"],
+  "files": [
+    "README.md"
+  ]
+}

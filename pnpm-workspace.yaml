@@ -6,6 +6,7 @@
 packages:
   - "app"
   - "packages/*"
+  - "npm/*"
 # esbuild's postinstall downloads its platform-native binary; Vite needs it.
 allowBuilds:
   esbuild: true
