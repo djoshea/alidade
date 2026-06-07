@@ -1,5 +1,5 @@
 {
-  "name": "@alidade/protocol",
+  "name": "@alidade-app/protocol",
   "version": "0.0.0",
   "description": "TypeScript wire-protocol types for alidade. Generated from the alidade-protocol Rust crate.",
   "license": "SEE LICENSE IN ../../LICENSE.md",

@@ -1,4 +1,4 @@
-# @alidade/protocol
+# @alidade-app/protocol
 
 TypeScript wire-protocol types for [alidade](https://github.com/djoshea/alidade).
 
@@ -7,7 +7,7 @@ source of truth for the cross-language protocol). Do not hand-edit them.
 
 ## Status
 
-Phase 0 — empty stub package, published to claim the `@alidade/protocol`
+Phase 0 — empty stub package, published to claim the `@alidade-app/protocol`
 name on npm. Real generated types arrive in Phase 1.
 
 ## License

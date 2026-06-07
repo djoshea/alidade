@@ -159,10 +159,18 @@ alidade/
 └── .github/workflows/            # path-filtered CI + tag-driven release
 ```
 
-**Name availability (checked):** `alidade`, `alidade-protocol`, `alidade-core`, `alidade-server`,
-`alidade-kernel` are all free on crates.io; `alidade` is free on PyPI and npm. The bare `alidade`
-does double duty as the server binary (`cargo install alidade`) and the Python package
-(`pip install alidade` / `import alidade`).
+**Names claimed (as of Phase 0):**
+- **crates.io:** `alidade` (server binary), `alidade-core`, `alidade-protocol` published at `0.0.0`.
+  `alidade-kernel` reserved for the future kernel crate.
+- **PyPI:** `alidade` (Python client) published at `0.0.0`.
+- **npm:** the `alidade` org name was already taken by an unrelated party, so the project uses
+  the `alidade-app` org instead — `@alidade-app/protocol` (TS protocol types) is the canonical
+  JS-side package. The bare `alidade` name on npm is deliberately *not* claimed: there is no
+  JS client library in the planned scope, so the bare name has no functional role; if a JS
+  client is built later, the name can be claimed at that point.
+
+The bare `alidade` does double duty as the server binary (`cargo install alidade`) and the
+Python package (`pip install alidade` / `import alidade`).
 
 ---
 

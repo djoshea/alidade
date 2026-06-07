@@ -10,7 +10,7 @@ importers:
 
   app:
     dependencies:
-      '@alidade/protocol':
+      '@alidade-app/protocol':
         specifier: workspace:*
         version: link:../packages/protocol
       react:
@@ -35,8 +35,6 @@ importers:
       vite:
         specifier: ^5.4.0
         version: 5.4.21
-
-  npm/alidade: {}
 
   packages/protocol:
     devDependencies:

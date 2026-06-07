@@ -5,7 +5,7 @@
 # Release order, once enabled:
 #   1. crates.io: alidade-protocol → alidade-core → alidade  (dep order matters)
 #   2. PyPI:      uv build && uv publish        (single package)
-#   3. npm:       @alidade/protocol             (alidade name-claim is one-off)
+#   3. npm:       @alidade-app/protocol
 #
 # Versioning is lockstep (docs/PLAN.md §5): one tag triggers one synchronized
 # release of every artifact at the same version.
@@ -70,7 +70,7 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
-      - name: publish @alidade/protocol
+      - name: publish @alidade-app/protocol
         working-directory: packages/protocol
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

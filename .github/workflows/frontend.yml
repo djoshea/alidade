@@ -44,11 +44,11 @@ jobs:
       - name: pnpm install
         run: pnpm install --frozen-lockfile
 
-      - name: Build @alidade/protocol
-        run: pnpm --filter @alidade/protocol run build
+      - name: Build @alidade-app/protocol
+        run: pnpm --filter @alidade-app/protocol run build
 
       - name: Typecheck workspace
         run: pnpm -r run typecheck
 
-      - name: Build @alidade/app
-        run: pnpm --filter @alidade/app run build
+      - name: Build @alidade-app/app
+        run: pnpm --filter @alidade-app/app run build

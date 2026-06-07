@@ -95,12 +95,12 @@ The `app/package.json` declares:
 
 ```json
 "dependencies": {
-  "@alidade/protocol": "workspace:*"
+  "@alidade-app/protocol": "workspace:*"
 }
 ```
 
 `workspace:*` tells pnpm: resolve this from a workspace member, not the npm
-registry. Locally, `app/node_modules/@alidade/protocol` becomes a symlink
+registry. Locally, `app/node_modules/@alidade-app/protocol` becomes a symlink
 to `packages/protocol/`. When publishing a workspace member to npm, pnpm
 rewrites `workspace:*` to a real version range.
 
@@ -251,8 +251,8 @@ what does this package's install script actually do, and do you trust it?
 
 You'll see this all over the place:
 
-- `pnpm --filter @alidade/app run typecheck` — run `typecheck` in the
-  `@alidade/app` package only.
+- `pnpm --filter @alidade-app/app run typecheck` — run `typecheck` in the
+  `@alidade-app/app` package only.
 - `pnpm -r run build` — run `build` in every workspace member that has it.
 - `pnpm -F './packages/*' run build` — run `build` in every package under
   `packages/`.
