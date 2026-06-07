@@ -15,6 +15,12 @@ concurrency:
   group: python-${{ github.ref }}
   cancel-in-progress: true
 
+# Opt every JavaScript-based action into Node 24 ahead of GitHub forcing
+# the default on 2026-06-16. Remove this env block when most third-party
+# actions have shipped Node-24-native releases.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 defaults:
   run:
     working-directory: python
