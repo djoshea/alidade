@@ -65,6 +65,11 @@ on:
   push:
     branches: [main]
 
+  # Manual trigger from the Actions tab — useful for re-running after
+  # changing release-please configuration or a repo-level permission,
+  # without needing a fresh push to main.
+  workflow_dispatch:
+
 # release-please needs both:
 #   contents: write — to push the release PR branch and (on merge) the tag
 #   pull-requests: write — to open and update the release PR
