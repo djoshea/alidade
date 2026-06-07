@@ -1,0 +1,65 @@
+# Smoke-test publish to TestPyPI. Fire manually from the Actions UI's
+# "Run workflow" button whenever you want to verify the python package
+# builds, validates, and uploads cleanly before tagging a real release.
+#
+# Version is mutated to `<current-version>.dev<run-number>` before the
+# build, so every TestPyPI publish gets a unique version slot — even if
+# the upload fails mid-way, the next run picks a fresh number and no
+# version is ever "burned" in a way that would force a real-version bump.
+#
+# Uses OIDC trusted publishing. Configure on TestPyPI:
+#   test.pypi.org/manage/account/publishing/  →  add a Pending Publisher
+#   for project name `alidade`, workflow `testpypi.yml`, environment
+#   `testpypi`.
+#
+# Pending publishers are TestPyPI's mechanism for trust-configuring a
+# project that doesn't exist yet; the first publish creates the project
+# under that publisher's trust.
+
+name: testpypi
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: publish testpypi
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/alidade
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Bump version to .dev<run-number>
+        run: |
+          # Extract the [project].version from pyproject.toml and append
+          # a PEP 440 dev suffix tied to the workflow run number. sed in
+          # place — we never commit this change.
+          base=$(grep '^version = ' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          devver="${base}.dev${GITHUB_RUN_NUMBER}"
+          sed -i "s/^version = \".*\"/version = \"${devver}\"/" pyproject.toml
+          echo "Bumped to ${devver}"
+
+      - name: uv build
+        run: uv build
+
+      - name: twine check (metadata validation)
+        run: uv tool run --from twine twine check dist/*
+
+      - name: Publish to TestPyPI via trusted publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: python/dist/

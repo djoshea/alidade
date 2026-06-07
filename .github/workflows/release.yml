@@ -1,14 +1,26 @@
-# Tag-driven release pipeline. STUB for Phase 0: the jobs are wired up but
-# guarded by `if: false` so that pushing a `v*` tag will not actually attempt
-# to publish anything until we flip the guards and add the secrets.
+# Tag-driven release pipeline. Pushing a tag matching `v*` (e.g. `v0.0.1`)
+# publishes the corresponding lockstep version to crates.io, PyPI, and npm.
 #
-# Release order, once enabled:
-#   1. crates.io: alidade-protocol → alidade-core → alidade  (dep order matters)
-#   2. PyPI:      uv build && uv publish        (single package)
-#   3. npm:       @alidade-app/protocol
+# All four registries use OIDC trusted publishing — no long-lived secrets
+# in this repository. Configure each on the registry side:
 #
-# Versioning is lockstep (docs/PLAN.md §5): one tag triggers one synchronized
-# release of every artifact at the same version.
+#   PyPI:      pypi.org/manage/project/alidade/settings/publishing/
+#              Add a trusted publisher for djoshea/alidade,
+#              workflow `release.yml`, environment `pypi`.
+#
+#   crates.io: crates.io → each crate's Settings → Trusted Publishers.
+#              Add one entry per crate (alidade-protocol, alidade-core,
+#              alidade) pointing at djoshea/alidade, workflow `release.yml`,
+#              environment `release`.
+#
+#   npm:      npmjs.com → each package's Settings → Trusted Publisher.
+#              Add one entry per package (alidade, @alidade-app/protocol)
+#              pointing at djoshea/alidade, workflow `release.yml`,
+#              environment `release`.
+#
+# Pre-release tags (anything containing `-`, e.g. `v0.0.1-rc.1`) are
+# ignored on purpose — TestPyPI is handled by its own workflow_dispatch
+# job, see .github/workflows/testpypi.yml.
 
 name: release
 
@@ -17,61 +29,112 @@ on:
     tags:
       - "v*"
 
+# OIDC token issuance requires id-token: write at the job level (set per
+# job below). contents: read for actions/checkout.
+permissions:
+  contents: read
+
 jobs:
   publish-crates:
     name: publish crates.io
-    if: false # phase 0 stub — flip to true (or remove) once CARGO_REGISTRY_TOKEN is set
+    if: ${{ !contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest
+    environment:
+      name: release
+      url: https://crates.io/crates/alidade
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
+
+      - name: Exchange OIDC token for crates.io token
+        uses: rust-lang/crates-io-auth-action@v1
+        id: crates-auth
+
+      # Publish in dependency order; cargo waits for each crate to be
+      # available in the index before returning.
       - name: publish alidade-protocol
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.crates-auth.outputs.token }}
         run: cargo publish -p alidade-protocol
+
       - name: publish alidade-core
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.crates-auth.outputs.token }}
         run: cargo publish -p alidade-core
+
       - name: publish alidade
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.crates-auth.outputs.token }}
         run: cargo publish -p alidade
 
   publish-pypi:
     name: publish PyPI
-    if: false # phase 0 stub
+    if: ${{ !contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/alidade
+    permissions:
+      contents: read
+      id-token: write
     defaults:
       run:
         working-directory: python
     steps:
       - uses: actions/checkout@v4
+
       - uses: astral-sh/setup-uv@v6
+
       - name: uv build
         run: uv build
-      - name: uv publish
-        env:
-          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: uv publish
+
+      - name: twine check (metadata validation)
+        run: uv tool run --from twine twine check dist/*
+
+      - name: Publish to PyPI via trusted publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python/dist/
 
   publish-npm:
     name: publish npm
-    if: false # phase 0 stub
+    if: ${{ !contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest
+    environment:
+      name: release
+    permissions:
+      contents: read
+      id-token: write  # required for npm provenance + trusted publishing
     steps:
       - uses: actions/checkout@v4
+
       - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
           registry-url: https://registry.npmjs.org
+
       - run: pnpm install --frozen-lockfile
+
+      - name: Build @alidade-app/protocol
+        run: pnpm --filter @alidade-app/protocol run build
+
+      # Publish the name-claim package first; protocol second.
+      # --provenance attaches a signed attestation linking the package to
+      # this commit; with trusted publishing configured on npmjs.com, no
+      # NPM_TOKEN is needed.
+      - name: publish alidade (bare)
+        working-directory: npm/alidade
+        run: npm publish --provenance --access public
+
       - name: publish @alidade-app/protocol
         working-directory: packages/protocol
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --access public --no-git-checks
+        run: npm publish --provenance --access public

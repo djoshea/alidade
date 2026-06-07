@@ -45,3 +45,13 @@ jobs:
 
       - name: pytest
         run: uv run pytest
+
+      # Metadata-validation gate. Builds wheel + sdist and runs the same
+      # twine check that PyPI runs at upload time — catches license-files
+      # / classifier / version-string regressions at PR time, before they
+      # burn a version slot on real PyPI.
+      - name: uv build
+        run: uv build
+
+      - name: twine check
+        run: uv tool run --from twine twine check dist/*
