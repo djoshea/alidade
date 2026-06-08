@@ -4,4 +4,4 @@ import alidade
 
 
 def test_version_matches_lockstep() -> None:
-    assert alidade.__version__ == "0.0.1"  # x-release-please-version
+    assert alidade.__version__ == "0.0.2"  # x-release-please-version
