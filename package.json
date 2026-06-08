@@ -1,7 +1,7 @@
 {
   "name": "alidade-monorepo",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "alidade monorepo root — not a publishable package.",
   "packageManager": "pnpm@11.1.3",
   "scripts": {
