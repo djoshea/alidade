@@ -1,0 +1,89 @@
+# Refresh the workspace lockfiles (Cargo.lock, pnpm-lock.yaml,
+# python/uv.lock) to match the current version pins, then commit any
+# resulting changes back to the same branch.
+#
+# Two triggers:
+#
+#   workflow_call: invoked from another workflow (e.g. release-please.yml
+#     after it bumps versions on a release PR branch). The caller passes
+#     the target branch via the `branch` input.
+#
+#   workflow_dispatch: fire manually from the Actions tab, e.g. to
+#     recover from drift between manifests and lockfiles, or to refresh
+#     lockfiles after editing dependency specs on a feature branch. The
+#     branch input defaults to the workflow's own ref (typically main).
+#
+# This is intentionally generic — nothing about it is release-please-
+# specific. Anything that mutates Cargo.toml / package.json / pyproject
+# .toml on a branch and wants the lockfiles to follow can call it.
+
+name: update-lockfiles
+
+on:
+  workflow_call:
+    inputs:
+      branch:
+        description: Branch to refresh lockfiles on.
+        type: string
+        required: true
+
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch to refresh lockfiles on. Defaults to the workflow's ref.
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # workflow_call always passes `branch`; workflow_dispatch may
+          # leave it empty, in which case fall back to the workflow's
+          # own ref (the branch the dispatch was fired against).
+          ref: ${{ inputs.branch != '' && inputs.branch || github.ref }}
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - uses: astral-sh/setup-uv@v8.2.0
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # `cargo update --workspace` rewrites Cargo.lock against the
+      # current Cargo.toml without a full build.
+      # `pnpm install --lockfile-only` rewrites pnpm-lock.yaml without
+      # populating node_modules.
+      # `uv lock` rewrites uv.lock without performing a venv sync.
+      - name: Refresh lockfiles
+        run: |
+          cargo update --workspace --quiet
+          pnpm install --lockfile-only
+          (cd python && uv lock --quiet)
+
+      # Standard "GitHub Actions bot" author identity. The uid 41898282
+      # is the bot's GitHub user ID; the noreply email format keeps the
+      # commit attributed to the bot in the UI.
+      - name: Commit and push lockfile updates (if any)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add Cargo.lock pnpm-lock.yaml python/uv.lock
+            git commit -m "chore: refresh lockfiles"
+            git push
+          else
+            echo "No lockfile changes needed."
+          fi

@@ -3,58 +3,73 @@
 # Merging the release PR fires the version tag (e.g. `v0.0.2`), which in
 # turn triggers .github/workflows/release.yml — the actual publishes.
 #
-# Lockfile refresh (Cargo.lock, pnpm-lock.yaml, python/uv.lock) is
-# handled by the sibling workflow release-please-lockfiles.yml, which
-# fires on the PR opened here.
+# Two-job structure:
 #
-# Conventional-commit semantics drive the bump computed in the release PR:
+#   release-please   →   release-please-action opens or updates the
+#                        release PR with version bumps + a generated
+#                        CHANGELOG entry. release-please does NOT run
+#                        language toolchains, so the lockfiles
+#                        (Cargo.lock, pnpm-lock.yaml, python/uv.lock)
+#                        are not refreshed at this point.
+#
+#   refresh-lockfiles  →  invokes .github/workflows/update-lockfiles.yml
+#                         (a reusable workflow) which checks out the
+#                         release PR branch and runs `cargo update`,
+#                         `pnpm install --lockfile-only`, and `uv lock`,
+#                         committing any lockfile changes back to the
+#                         same branch. Gated on `prs_created` so it only
+#                         runs when there's actually a PR to amend.
+#
+# Calling a reusable workflow via `uses: ./...` runs it as a nested job
+# in the same workflow run, inheriting the caller's GITHUB_TOKEN auth
+# context. This sidesteps GitHub's cascade-prevention rule (which would
+# otherwise block a separately-triggered `on: pull_request` workflow
+# from firing on the bot-authored PR) without needing a Personal Access
+# Token.
+#
+# Conventional-commit semantics drive the bump computed in act 1:
 #   fix:                      → patch  (e.g. 0.0.1 → 0.0.2)
 #   feat:                     → minor  (e.g. 0.0.1 → 0.1.0)
 #   feat!: / BREAKING CHANGE: → major
 #   chore / docs / refactor / test / ci → no bump; not in changelog
 #
-# Config file `release-please-config.json` — field-by-field notes:
+# Config-file (release-please-config.json) field notes:
 #
 #   "include-component-in-tag": false
 #       Single-package repo from release-please's POV; the tag is plain
 #       `vX.Y.Z`, not `alidade-vX.Y.Z`. Matches our existing `v0.0.1`.
 #
 #   "include-v-in-tag": true
-#       Tag is `v0.0.1` not `0.0.1`. Matches the convention release.yml
-#       triggers on (`tags: ['v*']`).
+#       Tag is `v0.0.1` not `0.0.1`. Matches what release.yml triggers
+#       on (`tags: ['v*']`).
 #
 #   "separate-pull-requests": false
-#       Single release PR for the whole repo (vs one PR per package). We
-#       only have one logical package anyway, but this is the safe knob.
+#       One release PR for the whole repo (vs one PR per package). We
+#       have one logical package; this is just the safe knob.
 #
 #   "packages.\".\".release-type": "simple"
-#       The "simple" release type does NOT auto-edit any package
-#       manifest by itself — every file we want updated is listed in
-#       extra-files. We use "simple" instead of "rust"/"node"/"python"
-#       because release-please's typed updaters target each crate's own
+#       The "simple" release type does not auto-edit any package
+#       manifest. Every file we want updated is listed in extra-files.
+#       We use "simple" instead of "rust"/"node"/"python" because
+#       release-please's typed updaters target each crate's own
 #       [package].version line, and our root Cargo.toml uses
-#       [workspace.package].version (with the rest inheriting). "simple"
-#       + per-file extra-files lets us cleanly handle the lockstep shape.
+#       [workspace.package].version (with the rest inheriting).
 #
 #   "packages.\".\".bump-minor-pre-major": true
-#       While still pre-1.0, treat "feat:" as a minor bump (0.0.x → 0.1.0)
-#       instead of a major bump (0.0.x → 1.0.0). The default behavior
-#       would be to never bump past 0.x.y unless a BREAKING CHANGE is
-#       present, which is too conservative for early development.
+#       While still pre-1.0, treat "feat:" as a minor bump
+#       (0.0.x → 0.1.0) instead of leaving versions stuck on 0.0.x
+#       until an explicit BREAKING CHANGE. Standard for active 0.x.
 #
 #   "packages.\".\".bump-patch-for-minor-pre-major": false
-#       Companion to the above: "fix:" still produces patch bumps
-#       (0.0.1 → 0.0.2), not pre-1.0 minor bumps. Standard behavior.
+#       Companion to the above: "fix:" still produces patch bumps.
 #
 #   "extra-files": [...]
-#       Each entry says "release-please, after computing the new version,
-#       go rewrite the version string in this file".
-#         type: "generic"  → finds lines annotated with the comment
-#           `# x-release-please-version` and updates the SemVer literal
-#           found on that line. Used for TOML files and Python source.
-#         type: "json"     → applies the new version at the given
-#           jsonpath. Used for our four package.json files (JSON doesn't
-#           accept comments, so the annotation approach can't apply).
+#       Each entry tells release-please where to rewrite a version
+#       string. type "generic" finds lines annotated with the comment
+#       `# x-release-please-version` and updates the SemVer found on
+#       that line (used for TOML and Python source). type "json"
+#       updates the value at the given jsonpath (used for our four
+#       package.json files, since JSON has no comments).
 
 name: release-please
 
@@ -80,13 +95,28 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    # Expose `prs_created` to the downstream job so it can gate on
+    # "did release-please actually open/update a PR this run?".
+    outputs:
+      prs_created: ${{ steps.rp.outputs.prs_created }}
     steps:
       - uses: googleapis/release-please-action@v4
+        id: rp
         with:
           # Both files live at the repo root by convention.
           config-file: release-please-config.json
-          # Tracks the currently-released version for each package; the
-          # manifest is how release-please bootstraps without scanning
-          # all of history. We seeded it to 0.0.1 (the version live on
-          # registries).
+          # Tracks the currently-released version for each package; how
+          # release-please bootstraps without scanning all of history.
+          # Seeded to 0.0.1 (the version live on registries).
           manifest-file: .release-please-manifest.json
+
+  refresh-lockfiles:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.prs_created == 'true' }}
+    # Reusable workflow call. The called workflow runs as a nested job
+    # in the same run and inherits the caller's GITHUB_TOKEN.
+    uses: ./.github/workflows/update-lockfiles.yml
+    with:
+      # release-please's branch name for our single-package config is
+      # stable across runs.
+      branch: release-please--branches--main
