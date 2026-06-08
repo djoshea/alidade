@@ -100,7 +100,7 @@ jobs:
     outputs:
       prs_created: ${{ steps.rp.outputs.prs_created }}
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         id: rp
         with:
           # Both files live at the repo root by convention.
