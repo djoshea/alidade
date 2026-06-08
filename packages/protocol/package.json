@@ -1,6 +1,6 @@
 {
   "name": "@alidade-app/protocol",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "TypeScript wire-protocol types for alidade. Generated from the alidade-protocol Rust crate.",
   "license": "SEE LICENSE IN ../../LICENSE.md",
   "author": "Daniel J. O'Shea",
