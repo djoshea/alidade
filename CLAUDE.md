@@ -110,6 +110,27 @@ automation later.
 
 ---
 
+## Keep `docs/notes/` in sync with the codebase
+
+`docs/notes/` carries pedagogical essays on the Rust workspace, the frontend stack, the release
+pipeline, etc. — each note describes *how the codebase actually works today*. They go stale when
+code changes, and stale pedagogical notes are worse than no notes.
+
+When a change touches the subject of a note, update the note **in the same commit/PR** as the code
+change. The discipline:
+
+1. Open `docs/notes/README.md` — it indexes every note with a one-line description of its scope.
+2. Skim the descriptions; decide which (if any) notes the change affects.
+3. Update the relevant notes alongside the code.
+4. If a substantive new topic appears (a new toolchain, a non-obvious architectural decision, a
+   new release flow) and no existing note covers it, add a new note file and list it in
+   `docs/notes/README.md`.
+
+Notes can lean on `[[other-note]]`-style references between each other; keep cross-references
+working when renaming.
+
+---
+
 ## Hard invariants (do not violate — full text in PLAN §10)
 
 1. The Rust server is the single source of truth for **document state**.

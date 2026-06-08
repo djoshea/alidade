@@ -13,3 +13,7 @@ reference — read top to bottom.
 - [Frontend stack: Vite + React + TypeScript + pnpm workspaces](frontend-stack.md)
   — how the build tool, the framework, the type system, and the package manager
   fit together.
+- [Release plan, workflows, and secrets management](release-plan.md) — the two
+  release-prepare patterns (bash script vs release-please), the publish pipeline,
+  OIDC trusted-publisher setup per registry, and a cheat sheet for actually
+  shipping a release.
